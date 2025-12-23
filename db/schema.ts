@@ -66,7 +66,7 @@ export const account = pgTable(
 )
 
 export const product = pgTable('product', {
-  id: integer().primaryKey(),
+  id: integer().primaryKey().generatedByDefaultAsIdentity(),
   name: varchar({ length: 256 }).notNull(),
   price: integer().notNull(),
   image: text().notNull(),
@@ -79,7 +79,7 @@ export const statusEnum = pgEnum('status', ['pending', 'completed', 'failed'])
 export const order = pgTable(
   'order',
   {
-    id: integer().primaryKey(),
+    id: integer().primaryKey().generatedByDefaultAsIdentity(),
     userId: text()
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }), // who bought

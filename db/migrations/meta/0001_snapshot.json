@@ -1,6 +1,6 @@
 {
-  "id": "dabef478-6fbf-46a1-846c-7c313c1d850e",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "62e96a60-5dfb-499b-8e6d-4813556ef99c",
+  "prevId": "dabef478-6fbf-46a1-846c-7c313c1d850e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -110,8 +110,12 @@
           "name": "account_userId_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -130,7 +134,18 @@
           "name": "id",
           "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "order_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "userId": {
           "name": "userId",
@@ -228,8 +243,12 @@
           "name": "order_userId_user_id_fk",
           "tableFrom": "order",
           "tableTo": "user",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -237,8 +256,12 @@
           "name": "order_productId_product_id_fk",
           "tableFrom": "order",
           "tableTo": "product",
-          "columnsFrom": ["productId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "productId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -248,7 +271,9 @@
         "order_razorpayOrderId_unique": {
           "name": "order_razorpayOrderId_unique",
           "nullsNotDistinct": false,
-          "columns": ["razorpayOrderId"]
+          "columns": [
+            "razorpayOrderId"
+          ]
         }
       },
       "policies": {},
@@ -263,7 +288,18 @@
           "name": "id",
           "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "product_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "name": {
           "name": "name",
@@ -303,8 +339,12 @@
           "name": "product_adminId_user_id_fk",
           "tableFrom": "product",
           "tableTo": "user",
-          "columnsFrom": ["adminId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "adminId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -391,8 +431,12 @@
           "name": "session_userId_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -402,7 +446,9 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": ["token"]
+          "columns": [
+            "token"
+          ]
         }
       },
       "policies": {},
@@ -459,7 +505,9 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
         }
       },
       "policies": {},
@@ -471,7 +519,11 @@
     "public.status": {
       "name": "status",
       "schema": "public",
-      "values": ["pending", "completed", "failed"]
+      "values": [
+        "pending",
+        "completed",
+        "failed"
+      ]
     }
   },
   "schemas": {},
