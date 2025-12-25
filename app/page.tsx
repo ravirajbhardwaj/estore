@@ -1,38 +1,20 @@
-'use client'
-
 import Image from 'next/image'
 import Link from 'next/link'
-// import { useEffect, useState } from 'react'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { products } from '@/lib/products'
+import type { Products } from '@/types'
 
-// type Product = {
-//   id: number
-//   name: string
-//   price: number
-//   image: string
-// }
+export default async function Page() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/product`)
 
-// async function fetchProducts(): Promise<Product[]> {
-//   const res = await fetch('/api/products')
-//   const data = await res.json()
-//   return data
-// }
+  if (!res.ok) {
+    throw new Error('Failed to fetch products')
+  }
 
-export default function Page() {
-  // const [products, setProducts] = useState<Product[]>([])
-
-  // useEffect(() => {
-  //   async function loadProducts() {
-  //     const productItems = await fetchProducts()
-  //     setProducts(productItems)
-  //   }
-
-  //   loadProducts()
-  // }, [])
+  const { data } = await res.json()
+  const products: Products[] = data ?? []
 
   return (
     <>
