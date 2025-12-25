@@ -8,17 +8,15 @@ import { Label } from '@/components/ui/label'
 export default function ProductPage() {
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
-  const [image, setImage] = useState('')
 
   const addProduct = async () => {
-    if (!name || !price || !image) return
+    if (!name || !price) return
     await fetch('/api/product', {
       method: 'POST',
-      body: JSON.stringify({ name, price, image }),
+      body: JSON.stringify({ name, price }),
     })
     setName('')
     setPrice('')
-    setImage('')
   }
 
   return (
@@ -48,18 +46,6 @@ export default function ProductPage() {
               value={price}
               className="mt-3"
               onChange={e => setPrice(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="image" className="mt-3">
-              Image URL
-            </Label>
-            <Input
-              id="image"
-              value={image}
-              className="mt-3"
-              onChange={e => setImage(e.target.value)}
             />
           </div>
 
