@@ -6,7 +6,7 @@ import { handle } from 'hono/vercel'
 import { db } from '@/db'
 import { product } from '@/db/schema'
 import { auth } from '@/lib/auth'
-import { created, error, HttpStatus, ok } from '@/lib/http'
+import { created, error, HttpStatus } from '@/lib/http'
 
 const app = new Hono<{
   Variables: {
@@ -53,26 +53,20 @@ const isAdmin = createMiddleware(async (c, next) => {
 })
 
 // Product API Routes
-app
-  .get('/product', async c => {
-    const products = await db.select().from(product)
+app.post('/product', isAdmin, async c => {
+  const user = c.get('user')
+  const { name, price } = await c.req.json()
+  const image = `/${name.replace(' ', '-')}`
 
-    return ok(c, [...products], 'Products fetch successfully')
+  const products = await db.insert(product).values({
+    name,
+    price,
+    image,
+    adminId: user?.id,
   })
-  .post('/product', isAdmin, async c => {
-    const user = c.get('user')
-    const { name, price } = await c.req.json()
-    const image = `/${name.replace(' ', '-')}`
 
-    const products = await db.insert(product).values({
-      name,
-      price,
-      image,
-      adminId: user?.id,
-    })
-
-    return created(c, products, 'Products created successfully')
-  })
+  return created(c, products, 'Products created successfully')
+})
 
 // Order API Routes
 app.get('/order').post('')
