@@ -1,7 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { ThemeProvider } from 'next-themes'
-import { geistMono, geistSans, inter } from '@/config/font'
+import { geistMono, geistSans } from '@/config/font'
 import { siteConfig } from '@/config/site'
 
 export const metadata: Metadata = siteConfig
@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html suppressHydrationWarning={true} lang="en" className={inter.variable}>
+    <html suppressHydrationWarning={true} lang="en">
       <body
         suppressHydrationWarning={true}
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
