@@ -1,23 +1,27 @@
+import { sql } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import ProductsDisplay from '@/components/ProductDisplay'
+import { db } from '@/db'
+import { product } from '@/db/schema'
 import type { Products } from '@/types'
 
-export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+export default async function Page({ params }: { params: { id: string } }) {
   const { id } = await params
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/product`)
+  let adminProducts: Products[] = []
 
-  if (!res.ok) {
-    throw new Error('Failed to fetch products')
+  try {
+    const result = await db
+      .select({ id: product.id, name: product.name, image: product.image, price: product.price })
+      .from(product)
+      .where(sql`${product.id} = ${Number(id)}`)
+
+    adminProducts = result
+  } catch (error) {
+    console.error('Failed to fetch products:', error)
   }
 
-  const { data } = await res.json()
-  const products: Products[] = data ?? []
+  if (!adminProducts || adminProducts.length === 0) notFound()
 
-  console.log(id)
-  const product = products.find(p => p.id === Number(id))
-
-  if (!product) notFound()
-
-  return <ProductsDisplay product={product} />
+  return <ProductsDisplay product={adminProducts[0]} />
 }
