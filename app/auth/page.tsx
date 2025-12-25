@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-// import { signIn } from '@/lib/client'
+import { signIn } from '@/lib/client'
 import { cn } from '@/lib/utils'
 
 export default function SignIn() {
@@ -35,20 +35,20 @@ export default function SignIn() {
                 className={cn('w-full gap-2')}
                 disabled={loading}
                 onClick={async () => {
-                  // await signIn.social(
-                  //   {
-                  //     provider: 'google',
-                  //     callbackURL: '/',
-                  //   },
-                  //   {
-                  //     onRequest: () => {
-                  //       setLoading(true)
-                  //     },
-                  //     onResponse: () => {
-                  //       setLoading(false)
-                  //     },
-                  //   }
-                  // )
+                  await signIn.social(
+                    {
+                      provider: 'google',
+                      callbackURL: '/',
+                    },
+                    {
+                      onRequest: () => {
+                        setLoading(true)
+                      },
+                      onResponse: () => {
+                        setLoading(false)
+                      },
+                    }
+                  )
                 }}>
                 <GoogleIcon />
                 Sign in with Google
