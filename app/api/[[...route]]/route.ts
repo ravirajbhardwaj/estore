@@ -60,14 +60,15 @@ app
     return ok(c, [...products], 'Products fetch successfully')
   })
   .post('/product', isAdmin, async c => {
+    const user = c.get('user')
     const { name, price } = await c.req.json()
-    const image = `${process.env.NEXT_PUBLIC_APP_URL}/${name}`
+    const image = `/${name.replace(' ', '-')}`
 
     const products = await db.insert(product).values({
       name,
       price,
       image,
-      adminId: '1',
+      adminId: user?.id,
     })
 
     return created(c, products, 'Products created successfully')
