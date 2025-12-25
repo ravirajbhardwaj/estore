@@ -31,6 +31,7 @@ export default async function Page() {
                     width={400}
                     height={400}
                     loading="eager"
+                    unoptimized
                     className="aspect-square w-full rounded-md object-cover group-hover:opacity-85 lg:aspect-auto lg:h-80 cursor-pointer"
                   />
                   <div className="mt-4 flex justify-between">
