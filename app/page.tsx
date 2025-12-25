@@ -7,10 +7,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import type { Products } from '@/types'
 
 export default async function Page() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/product`)
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/product`, {
+    cache: 'no-store',
+  })
 
   if (!res.ok) {
-    throw new Error('Failed to fetch products')
+    return []
   }
 
   const { data } = await res.json()
@@ -21,7 +23,7 @@ export default async function Page() {
       <Header />
       <main className="mx-auto max-w-2xl px-4 pb-4 sm:px-6 lg:max-w-7xl lg:px-8 ">
         <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8 ">
-          {products.map(product => (
+          {products.length > 0 ? products.map(product => (
             <Card key={product.id} className="group relative shadow-sm">
               <Link href={`/product/${product.id}`}>
                 <CardContent className="px-4">
@@ -45,7 +47,20 @@ export default async function Page() {
                 </CardContent>
               </Link>
             </Card>
-          ))}
+          )) : (
+            <div className="col-span-full flex items-center justify-center">
+              <Card className="max-w-sm text-center">
+                <CardContent className="p-6 space-y-2">
+                  <p className="text-lg font-semibold">
+                    No Products Available
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Please check back later or refresh the page.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </main>
       <Footer />
