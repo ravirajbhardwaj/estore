@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
-const TITLE = ''
+export const TITLE = 'Estore'
 const DESCRIPTION = ''
 
 const CREATOR = ''
 
 const PREVIEW_IMAGE_URL = ''
 const ALT_TITLE = ''
-const BASE_URL = ''
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL as string
 
 export const siteConfig: Metadata = {
   metadataBase: new URL(BASE_URL),
