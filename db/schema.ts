@@ -67,13 +67,29 @@ export const account = pgTable(
   table => [index('account_userId_idx').on(table.userId)]
 )
 
+export const verification = pgTable(
+  'verification',
+  {
+    id: text('id').primaryKey(),
+    identifier: text('identifier').notNull(),
+    value: text('value').notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  table => [index('verification_identifier_idx').on(table.identifier)]
+)
+
 export const product = pgTable('product', {
-  id: integer().primaryKey().generatedByDefaultAsIdentity(),
-  name: varchar({ length: 256 }).notNull(),
-  price: integer().notNull(),
-  image: text().notNull(),
-  createdAt: timestamp().defaultNow(),
-  adminId: text().references(() => user.id), // foreign key to admin
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+  name: varchar('name', { length: 256 }).notNull(),
+  price: integer('price').notNull(),
+  image: text('image').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  adminId: text('admin_id').references(() => user.id), // foreign key to admin
 })
 
 export const statusEnum = pgEnum('status', ['pending', 'completed', 'failed'])
@@ -81,20 +97,20 @@ export const statusEnum = pgEnum('status', ['pending', 'completed', 'failed'])
 export const order = pgTable(
   'order',
   {
-    id: integer().primaryKey().generatedByDefaultAsIdentity(),
-    userId: text()
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+    userId: text('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }), // who bought
-    productId: integer()
+    productId: integer('product_id')
       .notNull()
       .references(() => product.id, { onDelete: 'cascade' }), // which product
-    amount: integer().notNull(), // paid amount
-    quantity: smallint().notNull(), // quantity of products
-    razorpayOrderId: text().notNull().unique(),
-    razorpayPaymentId: text().notNull(), // razorpay payment id
-    status: statusEnum().default('pending'),
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp()
+    amount: integer('amount').notNull(), // paid amount
+    quantity: smallint('quantity').notNull(), // quantity of products
+    razorpayOrderId: text('razorpay_order_id').notNull().unique(),
+    razorpayPaymentId: text('razorpay_payment_id').notNull(), // razorpay payment id
+    status: statusEnum('status').default('pending'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
       .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
