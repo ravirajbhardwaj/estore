@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import { ThemeProvider } from 'next-themes'
 import { geistMono, geistSans } from '@/config/font'
 import { siteConfig } from '@/config/site'
@@ -16,6 +17,7 @@ export default function RootLayout({
       <body
         suppressHydrationWarning={true}
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
