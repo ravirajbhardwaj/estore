@@ -107,7 +107,7 @@ export const order = pgTable(
     amount: integer('amount').notNull(), // paid amount
     quantity: smallint('quantity').notNull(), // quantity of products
     razorpayOrderId: text('razorpay_order_id').notNull().unique(),
-    razorpayPaymentId: text('razorpay_payment_id').notNull(), // razorpay payment id
+    razorpayPaymentId: text('razorpay_payment_id'), // razorpay payment id
     status: statusEnum('status').default('pending'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
