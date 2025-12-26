@@ -1,12 +1,16 @@
+import crypto from 'node:crypto'
+import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { createMiddleware } from 'hono/factory'
 import { secureHeaders } from 'hono/secure-headers'
 import { handle } from 'hono/vercel'
+import Razorpay from 'razorpay'
+import { Resend } from 'resend'
 import { db } from '@/db'
-import { product } from '@/db/schema'
+import { order, product } from '@/db/schema'
 import { auth } from '@/lib/auth'
-import { created, error, HttpStatus } from '@/lib/http'
+import { created, error, HttpStatus, ok } from '@/lib/http'
 
 const app = new Hono<{
   Variables: {
@@ -52,6 +56,21 @@ const isAdmin = createMiddleware(async (c, next) => {
   error(HttpStatus.UNAUTHORIZED, 'Unauthorized user!')
 })
 
+const requireAuth = createMiddleware(async (c, next) => {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  })
+
+  if (!session) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+
+  c.set('user', session.user)
+  c.set('session', session.session)
+
+  await next()
+})
+
 // Product API Routes
 app.post('/product', isAdmin, async c => {
   const user = c.get('user')
@@ -68,8 +87,104 @@ app.post('/product', isAdmin, async c => {
   return created(c, products, 'Products created successfully')
 })
 
-// Order API Routes
-app.get('/order').post('')
+// RAZORPAY | ORDER API Routes
+const razorpay = new Razorpay({
+  key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+  key_secret: process.env.RZP_KEY_SECRET,
+})
+
+app.post('/order', requireAuth, async c => {
+  const user = c.get('user')
+  const { productId, quantity, amount } = await c.req.json()
+
+  const rzpOrder = await razorpay.orders.create({
+    amount: Math.round(amount * 100) * quantity,
+    currency: 'INR',
+    receipt: `receipt-${Date.now()}`,
+    notes: {
+      productId: productId.toString(),
+      userId: user!.id.toString(),
+      quantity: quantity.toString(),
+      amount: amount.toString(),
+    },
+  })
+
+  const [dbOrder] = await db
+    .insert(order)
+    .values({
+      userId: user!.id,
+      productId: Number(productId),
+      amount: Number(rzpOrder.amount),
+      razorpayOrderId: rzpOrder.id,
+      razorpayPaymentId: null,
+      quantity: Number(quantity),
+      status: 'pending',
+    })
+    .returning()
+
+  return ok(c, dbOrder, 'Order created successfully')
+})
+
+app.post('/webhooks/razorpay', async c => {
+  const user = c.get('user')
+  const email = (user!).email
+  const body = await c.req.text()
+  const signature = c.req.header('x-razorpay-signature')
+
+  if (!signature) {
+    return error(HttpStatus.BAD_REQUEST, 'Missing signature')
+  }
+
+  const expectedSignature = crypto
+    .createHmac('sha256', process.env.RZP_WEBHOOK_SECRET as string)
+    .update(body)
+    .digest('hex')
+
+  if (expectedSignature !== signature) {
+    return error(HttpStatus.BAD_REQUEST, 'Invalid Signature')
+  }
+
+  const event = JSON.parse(body)
+
+  if (event.event === 'payment.captured') {
+    const payment = event.payload.payment.entity
+
+    const [updatedOrder] = await db
+      .update(order)
+      .set({
+        razorpayPaymentId: payment.id,
+        status: 'completed',
+      })
+      .where(eq(order.razorpayOrderId, payment.order_id))
+      .returning()
+
+    if (updatedOrder) {
+      const [orderDetails] = await db
+        .select()
+        .from(order)
+
+      const resend = new Resend(process.env.RESEND_API_KEY as string)
+
+      await resend.emails.send({
+        from: '"Estore" <noreply@estore.com>',
+        to: [email],
+        subject: 'Payment Confirmation - Estore',
+        html: `Thank you for your purchase!
+               Order Details:
+                - Order ID: ${orderDetails.id.toString().slice(-6)}
+                - Product ID: ${orderDetails.productId}
+                - Amount: ${orderDetails.amount}
+                - Quantity: ${orderDetails.quantity}
+                - Price: $${orderDetails.amount.toFixed(2)}
+               Thank you for shopping with ImageKit Shop!
+          `.trim(),
+        replyTo: 'onboarding@resend.dev',
+      })
+    }
+
+    return ok(c, { received: true })
+  }
+})
 
 app.notFound(c => {
   return c.text('Not found 404 Message', 404)

@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
+import { TITLE } from '@/config/site'
 import { authClient } from '@/lib/client'
 import type { Products } from '@/types'
 
@@ -43,48 +44,11 @@ export default function ProductsDisplay({ product }: { product: Products }) {
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID as string,
         amount,
-        name: 'Pinecraft',
+        name: TITLE,
         image: session.user.image ?? '',
         description: `${product.name} - ${amount}`,
         order_id: razorpayOrderId,
-        callback_url: '/order',
-
-        handler: (paymentResponse: Response) => {
-          console.log(paymentResponse)
-          router.push('/order')
-        },
-
-        config: {
-          display: {
-            blocks: {
-              upi_qr: {
-                name: 'Pay With UPI QR',
-                instruments: [
-                  {
-                    method: 'upi',
-                    flows: ['qr'],
-                  },
-                ],
-              },
-
-              other_methods: {
-                name: 'Cards, UPI & More',
-                instruments: [
-                  { method: 'card' },
-                  { method: 'upi' },
-                  { method: 'netbanking' },
-                  { method: 'wallet' },
-                ],
-              },
-            },
-
-            sequence: ['block.upi_qr', 'block.other_methods'],
-
-            preferences: {
-              show_default_blocks: false,
-            },
-          },
-        },
+        callback_url: `${process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID}/order`,
 
         prefill: {
           email: session.user.email,
