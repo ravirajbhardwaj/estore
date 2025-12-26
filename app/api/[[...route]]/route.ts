@@ -127,7 +127,7 @@ app.post('/order', requireAuth, async c => {
 
 app.post('/webhooks/razorpay', async c => {
   const user = c.get('user')
-  const email = (user!).email
+  const email = user!.email
   const body = await c.req.text()
   const signature = c.req.header('x-razorpay-signature')
 
@@ -159,9 +159,7 @@ app.post('/webhooks/razorpay', async c => {
       .returning()
 
     if (updatedOrder) {
-      const [orderDetails] = await db
-        .select()
-        .from(order)
+      const [orderDetails] = await db.select().from(order)
 
       const resend = new Resend(process.env.RESEND_API_KEY as string)
 

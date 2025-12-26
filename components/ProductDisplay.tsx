@@ -5,10 +5,11 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { TITLE } from '@/config/site'
 import { authClient } from '@/lib/client'
-import type { Products } from '@/types'
+import type { Products, RazorpayHandlerResponse } from '@/types'
 
 export default function ProductsDisplay({ product }: { product: Products }) {
   const [quantity, setQuantity] = React.useState<number>(1)
@@ -48,7 +49,15 @@ export default function ProductsDisplay({ product }: { product: Products }) {
         image: session.user.image ?? '',
         description: `${product.name} - ${amount}`,
         order_id: razorpayOrderId,
-        callback_url: `${process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID}/order`,
+
+        handler: (response: RazorpayHandlerResponse) => {
+          console.log(response)
+
+          toast.success('Payment Successful!', {
+            description: `Payment ID: ${response.razorpay_payment_id}`,
+          })
+          router.push('/order')
+        },
 
         prefill: {
           email: session.user.email,
