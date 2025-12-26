@@ -38,7 +38,7 @@ export default function ProductsDisplay({ product }: { product: Products }) {
 
       const data = await response.json()
 
-      const { razorpayOrderId, amount } = data
+      const { razorpayOrderId, amount } = data.data
 
       // Razorpay options
       const options = {
