@@ -3,7 +3,6 @@ import { headers } from 'next/headers'
 import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
-// import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { db } from '@/db'
 import { order, product } from '@/db/schema'
@@ -41,7 +40,7 @@ export default async function OrderCardPage() {
   return (
     <div className="min-h-screen max-w-6xl mx-auto mt-8">
       {orders.map(order => (
-        <Card key={order.order.id}>
+        <Card key={order.order.id} className='mb-4'>
           <CardContent className="flex items-center justify-around flex-wrap">
             <Image
               src={order.product.image}
