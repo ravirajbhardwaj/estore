@@ -1,31 +1,29 @@
-'use client'
-
+import { eq } from 'drizzle-orm'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { Badge } from '@/components/ui/badge'
 // import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { db } from '@/db'
+import { order, product } from '@/db/schema'
 
-interface Order {
-  id: number
-  amount: number
-  quantity: number
-  status: 'pending' | 'completed' | 'failed'
-  createdAt: string
-  product: {
-    name: string
-    image: string
-    price: number
-  }
-}
+export default async function OrderCardPage() {
+  let orders = []
 
-export default function OrderCardPage() {
-  const [orders, setOrders] = useState<Order[]>([])
+  orders = await db
+    .select({
+      orderId: order.id,
+      quantity: order.quantity,
+      amount: order.amount,
+      status: order.status,
+      createdAt: order.createdAt,
 
-  useEffect(() => {
-    fetch('/api/order')
-      .then(res => res.json())
-      .then(setOrders)
-  }, [])
+      productId: product.id,
+      productImage: product.image,
+      productName: product.name,
+      productPrice: product.price,
+    })
+    .from(order)
+    .innerJoin(product, eq(order.productId, product.id))
 
   if (orders.length === 0) {
     return (
@@ -44,10 +42,10 @@ export default function OrderCardPage() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-5xl mx-auto grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {orders.map(order => (
-          <Card key={order.id} className="overflow-hidden">
+          <Card key={order.orderId} className="overflow-hidden">
             <Image
-              src={order.product.image}
-              alt={order.product.name}
+              src={order.productImage}
+              alt={order.productName}
               width={400}
               height={300}
               className="h-40 w-full object-cover"
@@ -56,8 +54,8 @@ export default function OrderCardPage() {
 
             <CardContent className="p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold">{order.product.name}</h3>
-                {/* <Badge
+                <h3 className="font-semibold">{order.productName}</h3>
+                <Badge
                   variant={
                     order.status === 'completed'
                       ? 'default'
@@ -66,10 +64,10 @@ export default function OrderCardPage() {
                         : 'secondary'
                   }>
                   {order.status}
-                </Badge> */}
+                </Badge>
               </div>
 
-              <p className="text-sm text-muted-foreground">Price: ₹{order.product.price}</p>
+              <p className="text-sm text-muted-foreground">Price: ₹{order.amount}</p>
 
               <p className="text-sm text-muted-foreground">Quantity: {order.quantity}</p>
 
