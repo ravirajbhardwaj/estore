@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { createMiddleware } from 'hono/factory'
@@ -8,7 +8,7 @@ import { handle } from 'hono/vercel'
 import Razorpay from 'razorpay'
 import { Resend } from 'resend'
 import { db } from '@/db'
-import { order, product } from '@/db/schema'
+import { order, product, user } from '@/db/schema'
 import { auth } from '@/lib/auth'
 import { created, error, HttpStatus, ok } from '@/lib/http'
 
@@ -31,10 +31,7 @@ app.use(
 )
 app.use(secureHeaders())
 
-// Auth API Routes
-app.on(['POST', 'GET'], '/auth/*', c => auth.handler(c.req.raw))
-
-app.use('*', async (c, next) => {
+const sessionMiddleware = createMiddleware(async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
   if (!session) {
     c.set('user', null)
@@ -71,8 +68,11 @@ const requireAuth = createMiddleware(async (c, next) => {
   await next()
 })
 
+// Auth API Routes
+app.on(['POST', 'GET'], '/auth/*', c => auth.handler(c.req.raw))
+
 // Product API Routes
-app.post('/product', isAdmin, async c => {
+app.post('/product', sessionMiddleware, isAdmin, async c => {
   const user = c.get('user')
   const { name, price } = await c.req.json()
   const image = `/${name.replace(' ', '-')}`
@@ -93,7 +93,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RZP_KEY_SECRET,
 })
 
-app.post('/order', requireAuth, async c => {
+app.post('/order', sessionMiddleware, requireAuth, async c => {
   const user = c.get('user')
   const { productId, quantity, amount } = await c.req.json()
 
@@ -126,8 +126,6 @@ app.post('/order', requireAuth, async c => {
 })
 
 app.post('/webhooks/razorpay', async c => {
-  const user = c.get('user')
-  const email = user!.email
   const body = await c.req.text()
   const signature = c.req.header('x-razorpay-signature')
 
@@ -160,23 +158,21 @@ app.post('/webhooks/razorpay', async c => {
 
     if (updatedOrder) {
       const [orderDetails] = await db.select().from(order)
+      const [existedUser] = await db.select().from(user).where(sql`${orderDetails.userId}`)
 
+      const amountInRupees = orderDetails.amount / 100
       const resend = new Resend(process.env.RESEND_API_KEY as string)
 
       await resend.emails.send({
         from: '"Estore" <noreply@estore.com>',
-        to: [email],
-        subject: 'Payment Confirmation - Estore',
-        html: `Thank you for your purchase!
-               Order Details:
-                - Order ID: ${orderDetails.id.toString().slice(-6)}
-                - Product ID: ${orderDetails.productId}
-                - Amount: ${orderDetails.amount}
-                - Quantity: ${orderDetails.quantity}
-                - Price: $${orderDetails.amount.toFixed(2)}
-               Thank you for shopping with ImageKit Shop!
-          `.trim(),
-        replyTo: 'onboarding@resend.dev',
+        to: [existedUser.email],
+        subject: 'Payment Confirmation',
+        html: `
+        Thanks for purchance
+      Order ID: ${orderDetails.id}
+      Amount: ₹${amountInRupees}
+      Quantity: ${orderDetails.quantity}
+    `,
       })
     }
 
