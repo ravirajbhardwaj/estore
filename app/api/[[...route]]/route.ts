@@ -75,7 +75,7 @@ app.on(['POST', 'GET'], '/auth/*', c => auth.handler(c.req.raw))
 app.post('/product', sessionMiddleware, isAdmin, async c => {
   const user = c.get('user')
   const { name, price } = await c.req.json()
-  const image = `/${name.replace(' ', '-')}`
+  const image = `${name.replace(' ', '-')}.webp`
 
   const products = await db.insert(product).values({
     name,
