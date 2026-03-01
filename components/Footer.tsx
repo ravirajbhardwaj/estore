@@ -30,10 +30,10 @@ export default function Footer() {
 
           <FooterColumn title="Social">
             <div className="flex gap-2">
-              <FooterLink href="https://twitter.com">
+              <FooterLink href="https://x.com/SonuKum46858150">
                 <HugeiconsIcon icon={NewTwitterIcon} size={16} />
               </FooterLink>
-              <FooterLink href="https://instagram.com">
+              <FooterLink href="https://instagram.com/layercraft_">
                 <HugeiconsIcon icon={InstagramIcon} size={16} />
               </FooterLink>
             </div>
