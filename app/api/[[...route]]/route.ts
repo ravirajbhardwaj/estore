@@ -23,7 +23,7 @@ app.use(
   cors({
     origin: process.env.NEXT_PUBLIC_APP_URL as string,
     allowHeaders: ['Content-Type', 'Authorization'],
-    allowMethods: ['POST', 'GET', 'OPTIONS'],
+    allowMethods: ['POST', 'GET', 'DELETE', 'OPTIONS'],
     exposeHeaders: ['Content-Length'],
     maxAge: 600,
     credentials: true,
@@ -72,6 +72,11 @@ const requireAuth = createMiddleware(async (c, next) => {
 app.on(['POST', 'GET'], '/auth/*', c => auth.handler(c.req.raw))
 
 // Product API Routes
+app.get('/product', sessionMiddleware, isAdmin, async c => {
+  const products = await db.select().from(product)
+  return ok(c, products, 'Products fetched successfully')
+})
+
 app.post('/product', sessionMiddleware, isAdmin, async c => {
   const user = c.get('user')
   const { name, price } = await c.req.json()
@@ -85,6 +90,12 @@ app.post('/product', sessionMiddleware, isAdmin, async c => {
   })
 
   return created(c, products, 'Products created successfully')
+})
+
+app.delete('/product/:id', sessionMiddleware, isAdmin, async c => {
+  const id = Number(c.req.param('id'))
+  await db.delete(product).where(eq(product.id, id))
+  return ok(c, { id }, 'Product deleted successfully')
 })
 
 // RAZORPAY | ORDER API Routes
@@ -191,3 +202,4 @@ app.onError((err, c) => {
 
 export const GET = handle(app)
 export const POST = handle(app)
+export const DELETE = handle(app)
